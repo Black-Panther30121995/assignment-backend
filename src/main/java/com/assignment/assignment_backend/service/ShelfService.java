@@ -1,5 +1,7 @@
 package com.assignment.assignment_backend.service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.neo4j.driver.Driver;
@@ -8,6 +10,7 @@ import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
 import org.springframework.beans.factory.annotation.Value;        
 import org.springframework.stereotype.Service;
 
@@ -23,6 +26,32 @@ public class ShelfService {
     public ShelfService(Driver driver,@Value("${neo4j.database:neo4j}") String database) {
         this.driver = driver;
         this.database = database;
+    }
+    
+    public List<Shelf> getAllShelves() {
+        try (Session session = driver.session(SessionConfig.forDatabase(database))) {
+            return session.executeRead(tx -> {
+                Result res = tx.run("""
+                    MATCH (s:Shelf)
+                    WHERE s.isDeleted = false
+                    RETURN s ORDER BY s.shelfName
+                """);
+
+                List<Shelf> list = new ArrayList<>();
+
+                while (res.hasNext()) {
+                    Node s = res.next().get("s").asNode();
+                    list.add(new Shelf(
+                        s.get("shelfId").asString(),
+                        s.get("shelfName").asString(),
+                        s.get("partNumber").asString(),
+                        s.get("isDeleted").asBoolean()
+                    ));
+                }
+
+                return list;
+            });
+        }
     }
 
     public Shelf createShelf(CreateShelfRequest req) {

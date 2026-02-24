@@ -31,6 +31,12 @@ public class ShelfPositionService {
     }
 
     public PositionView createShelfPosition(String deviceId, int index) {
+    	if (deviceId == null)
+            throw new NullPointerException("deviceId cannot be null");
+
+        if (index <= 0)
+            throw new IllegalArgumentException("index must be positive");
+
         String spId = "SP-" + UUID.randomUUID();
         try (Session session = driver.session(SessionConfig.forDatabase(database))) {
             return session.executeWrite(tx -> {
