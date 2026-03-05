@@ -14,6 +14,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
+import com.assignment.assignment_backend.entity.Shelf;
+import com.assignment.assignment_backend.requests.CreateShelfRequest;
 
 @ExtendWith(MockitoExtension.class)
 class ShelfServiceTests {
@@ -26,6 +28,25 @@ class ShelfServiceTests {
     @BeforeEach
     void setUp() {
         shelfService = new ShelfService(driver, "neo4j");
+    }
+    
+    @Test
+    void testCreateShelf_doesNotThrow_andReturnsShelf() {
+        when(driver.session(any(SessionConfig.class))).thenReturn(session);
+
+        Shelf stubShelf = new Shelf(
+                "SHELF-1", "Shelf-A", "PN-1", false
+        );
+
+        when(session.executeWrite(any())).thenReturn(stubShelf);
+
+        var req =new CreateShelfRequest("Shelf-A","PN-1");
+
+        assertDoesNotThrow(() -> {
+            var result = shelfService.createShelf(req);
+            assertNotNull(result);
+            assertEquals("SHELF-1", result.getShelfId());
+        });
     }
 
     @Test

@@ -31,11 +31,8 @@ class ShelfPositionServiceTests {
     @Test
     void testListPositionsByDevice_returnsList() {
         when(driver.session(any(SessionConfig.class))).thenReturn(session);
-
-        // Simple empty list, bypassing execute()
         when(session.executeRead(any())).thenReturn(Collections.emptyList());
-
-        assertNotNull(shelfPositionService.listPositionsByDevice("D1"));
+assertNotNull(shelfPositionService.listPositionsByDevice("D1"));
     }
 
     @Test

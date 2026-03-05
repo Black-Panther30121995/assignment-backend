@@ -14,6 +14,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
+import com.assignment.assignment_backend.entity.Device;
+
+import com.assignment.assignment_backend.requests.CreateDeviceRequest;
 
 @ExtendWith(MockitoExtension.class)
 class DeviceServiceTests {
@@ -27,12 +30,29 @@ class DeviceServiceTests {
     void setUp() {
         deviceService = new DeviceService(driver, "neo4j");
     }
+    
+    @Test
+    void createDevice_doesNotThrow_andReturnsDevice() {
+    	when(driver.session(any(SessionConfig.class))).thenReturn(session);
+        Device stubDevice = new Device(
+            "D-1","Core-01","PN-1","B1","Router",3,false
+        );
+        when(session.executeWrite(any())).thenReturn(stubDevice);
+
+        var req = new CreateDeviceRequest("Core-01","PN-1","B1","Router",3);
+
+        assertDoesNotThrow(() -> {
+            var result = deviceService.createDevice(req);
+            assertNotNull(result);
+            assertEquals("D-1", result.getDeviceId());
+        });
+    }
 
     @Test
     void testGetAllDevices_returnsList() {
         when(driver.session(any(SessionConfig.class))).thenReturn(session);
 
-        // Return empty list directly → no executeRead → no execute → no NPE
+
         when(session.executeRead(any())).thenReturn(Collections.emptyList());
 
         assertNotNull(deviceService.getAllDevices());
@@ -54,9 +74,11 @@ class DeviceServiceTests {
     void testSoftDeleteDevice_doesNotThrow() {
         when(driver.session(any(SessionConfig.class))).thenReturn(session);
 
-        // No lambda will run → no execute()
         when(session.executeWrite(any())).thenReturn(null);
 
         assertDoesNotThrow(() -> deviceService.softDeleteDevice("D1"));
     }
 }
+
+
+
